@@ -1,0 +1,13 @@
+services:
+  pandoc:
+    container_name: pandoc
+    image: registry.cn-chengdu.aliyuncs.com/custom-gq/go-pandoc:latest
+    ports:
+      - '8080:80'
+    environment:
+      OSS_ACCESS_KEY_ID: xxx
+      OSS_ACCESS_KEY_SECRET: xxx
+      OSS_URL: https://agi-apq.oss-cn-chengdu.aliyuncs.com
+      OSS_ENDPOINT: oss-cn-chengdu.aliyuncs.com
+    volumes:
+      - ./data:/app
