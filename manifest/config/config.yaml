@@ -1,0 +1,39 @@
+server:
+  # 基本配置
+  address: ":8080"        # 本地监听地址。默认":80"，多个地址以","号分隔。例如："192.168.2.3:8000,10.0.3.10:8001"
+
+  # 接口文档
+  openapiPath: "/api.json" # OpenAPI接口文档地址
+  swaggerPath: "/swagger"  # 内置SwaggerUI展示地址
+
+  # 日志基本配置，此配置类似nginx，主要对请求日志的记录
+  logPath: ""
+  logStdout: true
+  errorStack: true
+  errorLogEnabled: true
+  errorLogPattern: "error-{Ymd}.log"
+  accessLogEnabled: false
+  accessLogPattern: "access-{Ymd}.log"
+
+logger:
+  path:                  ""           # 日志文件路径。默认为空，表示关闭，仅输出到终端
+  file:                  "{Y-m-d}.log"         # 日志文件格式。默认为"{Y-m-d}.log"
+  prefix:                ""                    # 日志内容输出前缀。默认为空
+  level:                 "all"                 # 日志输出级别
+  timeFormat:            "2006-01-02T15:04:05" # 自定义日志输出的时间格式，使用Golang标准的时间格式配置
+  ctxKeys:               []                    # 自定义Context上下文变量名称，自动打印Context的变量到日志中。默认为空
+  header:                true                  # 是否打印日志的头信息。默认true
+  stdout:                true                  # 日志是否同时输出到终端。默认true
+  rotateSize:            0                     # 按照日志文件大小对文件进行滚动切分。默认为0，表示关闭滚动切分特性
+  rotateExpire:          0                     # 按照日志文件时间间隔对文件滚动切分。默认为0，表示关闭滚动切分特性
+  rotateBackupLimit:     0                     # 按照切分的文件数量清理切分文件，当滚动切分特性开启时有效。默认为0，表示不备份，切分则删除
+  rotateBackupExpire:    0                     # 按照切分的文件有效期清理切分文件，当滚动切分特性开启时有效。默认为0，表示不备份，切分则删除
+  rotateBackupCompress:  0                     # 滚动切分文件的压缩比（0-9）。默认为0，表示不压缩
+  rotateCheckInterval:   "1h"                  # 滚动切分的时间检测间隔，一般不需要设置。默认为1小时
+  stdoutColorDisabled:   false                 # 关闭终端的颜色打印。默认开启
+  writerColorEnable:     false                 # 日志文件是否带上颜色。默认false，表示不带颜色
+
+  # 其他配置
+  clientMaxBodySize: 33554432           # 客户端最大Body上传限制大小，影响文件上传大小(Byte)。默认为32*1024*1024=32MB
+  routeOverWrite: false                 # 当遇到重复路由注册时是否强制覆盖。默认为false，重复路由存在时将会在启动时报错退出
+  dumpRouterMap: true                   # 是否在Server启动时打印所有的路由列表。默认为true
