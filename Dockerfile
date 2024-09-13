@@ -20,6 +20,8 @@ WORKDIR /app
 
 COPY --from=builder /go/bin/go-pandoc /usr/local/bin/go-pandoc
 
+COPY ./manifest /app/manifest
+
 EXPOSE 80
 
 ENTRYPOINT ["/usr/local/bin/go-pandoc"]

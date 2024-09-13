@@ -4,15 +4,18 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/gogf/gf/v2/frame/g"
-	"github.com/gogf/gf/v2/os/gfile"
-	"github.com/gogf/gf/v2/util/guid"
-	"github.com/gq-leon/go-pandoc/internal/service"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strings"
+	"sync"
+
+	"github.com/gogf/gf/v2/frame/g"
+	"github.com/gogf/gf/v2/os/gfile"
+	"github.com/gogf/gf/v2/util/guid"
+	"github.com/gq-leon/go-pandoc/internal/model"
+	"github.com/gq-leon/go-pandoc/internal/service"
 )
 
 type sDoc struct{}
@@ -33,9 +36,10 @@ func (s *sDoc) ToDocx(ctx context.Context, src string) (string, error) {
 			dst  = fmt.Sprintf("%s/%s.docx", gfile.Dir(src), gfile.Name(src))
 			args = []string{"-f", "docx", "-o", dst, src}
 		)
-		g.Log().Infof(ctx, "exec command: unoconv %s", strings.Join(args, " "))
-		command := exec.Command("unoconv", args...)
-		if _, err := command.Output(); err != nil {
+
+		data := model.NewUnoconvCall(ctx, args)
+		service.Unoconv().Add(data)
+		if err := <-data.CallBack; err != nil {
 			return "", err
 		}
 		return dst, nil
@@ -80,16 +84,28 @@ func mediaResource(ctx context.Context, path string) map[string]string {
 	files := make(map[string]string)
 	mediaPath := path + "/media"
 	if gfile.Exists(mediaPath) {
+		var (
+			wg sync.WaitGroup
+			mu sync.Mutex
+		)
 		list, _ := gfile.ScanDir(mediaPath, "*", false)
 		for _, v := range list {
-			if upload, err := service.Oss().Upload(ctx, "pandoc", v); err != nil {
-				g.Log().Errorf(ctx, "上传 oss 失败: %s", err)
-			} else {
-				abs, _ := filepath.Abs(".")
-				rel, _ := filepath.Rel(abs, v)
-				files[rel] = upload
-			}
+			wg.Add(1)
+			go func(v string) {
+				defer wg.Done()
+				if upload, err := service.Oss().Upload(ctx, "pandoc", v); err != nil {
+					g.Log().Errorf(ctx, "上传 oss 失败: %s", err)
+				} else {
+					abs, _ := filepath.Abs(".")
+					rel, _ := filepath.Rel(abs, v)
+
+					mu.Lock()
+					files[rel] = upload
+					mu.Unlock()
+				}
+			}(v)
 		}
+		wg.Wait()
 		_ = gfile.Remove(path)
 	}
 	return files
