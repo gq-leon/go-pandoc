@@ -121,6 +121,11 @@ func replaceMedia(filePath string, data map[string]string) error {
 		re := regexp.MustCompile(`(\.?)` + src)
 		content = re.ReplaceAllString(content, dst)
 	}
+
+	// width & height
+	re := regexp.MustCompile(`\{[^{}]*width="[^"]*"[^{}]*height="[^"]*"[^{}]*\}`)
+	content = re.ReplaceAllString(content, "")
+
 	err = os.WriteFile(filePath, []byte(content), os.ModePerm)
 	if err != nil {
 		return fmt.Errorf("写入文件失败: %w", err)
