@@ -49,16 +49,14 @@ func (c *ControllerV1) Doc(ctx context.Context, req *v1.DocReq) (res *v1.DocRes,
 				errChan <- gerror.NewCode(gcode.CodeInternalError, err.Error())
 				return
 			}
-			mu.TryLock()
+			mu.Lock()
 			urls = append(urls, dst)
 			mu.Unlock()
 		}(filename)
 	}
 
-	go func() {
-		wg.Wait()
-		close(errChan)
-	}()
+	wg.Wait()
+	close(errChan)
 
 	if finalErr, ok := <-errChan; ok {
 		return nil, finalErr
